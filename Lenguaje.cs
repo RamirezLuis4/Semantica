@@ -63,6 +63,17 @@ namespace Semantica
             }
             return 0;
         }
+        private Variable.TipoDato getTipo(string nameVariable)
+        {
+            foreach (Variable v in listaVariables)
+            {
+                if (v.getNombre().Equals(nameVariable))
+                {
+                    return v.getTipo();
+                }
+            }
+            return Variable.TipoDato.Char;
+        }
         //Programa -> Librerias? Variables? Main
         public void Programa()
         {
@@ -165,6 +176,23 @@ namespace Semantica
                 //Console.WriteLine("Error de sintaxis. No se reconoce la instruccion: " + getContenido());
                 //nextToken();
             }
+        }
+        private Variable.TipoDato evaluanumero(float resultado)
+        {
+            if(resultado <= 255)
+            {
+                return Variable.TipoDato.Char;
+            }
+            else if(resultado <= 65535)
+            {
+                return Variable.TipoDato.Int;
+            }
+            return Variable.TipoDato.Float;
+        }
+        private bool evaluasemantica(string variable, float resultado)
+        {
+            Variable.TipoDato tipoDato = getTipo(variable);
+            return false;
         }
         // Asignacion -> identificador = cadena | Expresion ;
         private void Asignacion()
