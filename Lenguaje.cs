@@ -11,6 +11,7 @@ namespace Semantica
     {
         List<Variable> listaVariables = new List<Variable>();
         Stack<float> stackOperandos = new Stack<float>();
+        Variable.TipoDato dominante;
         public Lenguaje()
         {
 
@@ -179,6 +180,10 @@ namespace Semantica
         }
         private Variable.TipoDato evaluanumero(float resultado)
         {
+            if(resultado % 1 != 0)
+            {
+                return Variable.TipoDato.Float;
+            }
             if(resultado <= 255)
             {
                 return Variable.TipoDato.Char;
@@ -206,13 +211,25 @@ namespace Semantica
             log.Write(getContenido() + " = ");
             string name = getContenido();
             match(Tipos.Identificador);
-            match("=");
+            match(Tipos.Asignacion);
+            dominante = Variable.TipoDato.Char;
             Expresion();
             match(";");
             float resultado = stackOperandos.Pop();
             log.Write("= " + resultado);
             log.WriteLine();
-            modValor(name, resultado);
+            if (dominante < evaluanumero(resultado))
+            {
+                dominante = evaluanumero(resultado);
+            }
+            if(dominante <= getTipo(name))
+            {
+                modValor(name, resultado);
+            }
+            else 
+            {
+                 throw new Error("Error de semantica: no podemos asignar un: <" +dominante + "> a un <" + getTipo(name) +  "> en linea  " + linea, log);
+            }
         }
         // Printf -> printf (string | Expresion);
         private void Printf()
@@ -476,6 +493,10 @@ namespace Semantica
             if (getClasificacion() == Tipos.Numero)
             {
                 log.Write(getContenido() + " ");
+                if(dominante < evaluanumero(float.Parse(getContenido())))
+                {
+                    dominante = evaluanumero(float.Parse(getContenido()));
+                }
                 stackOperandos.Push(float.Parse(getContenido()));
                 match(Tipos.Numero);
             }
