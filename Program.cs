@@ -1,4 +1,5 @@
-﻿using System;
+﻿//Luis Angel Ramirez Peña
+using System;
 using System.IO;
 
 namespace Semantica
