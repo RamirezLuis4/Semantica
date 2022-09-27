@@ -5,8 +5,9 @@
 //Requerimiento 3: Programar un metodo de conversion de un valor a un tipo de dato 
 //                 private float convert(float valor, string TipoDato)
 //                 deberan usar el residuo de la division %255, %65535
-//Requerimiento 4: 
-//Requerimiento 5: 
+//Requerimiento 4: Evaluar nuevamente la condicion del If- else, While, For , do while
+//                 con respecto al parametro que recibe.
+//Requerimiento 5: Levantar una excepcion cuando la captura no sea un numero 
 using System.Collections.Generic;
 
 namespace Semantica
@@ -47,7 +48,7 @@ namespace Semantica
         }
         private void modValor(string name, float newValue)
         {
-            //Requerimiento 3
+            
             foreach (Variable v in listaVariables)
             {
                 if (v.getNombre().Equals(name))
@@ -58,7 +59,7 @@ namespace Semantica
         }
         private float getValor(string nameVariable)
         {
-            //Requerimiento 4.
+            
             foreach (Variable v in listaVariables)
             {
                 if (v.getNombre().Equals(nameVariable))
@@ -139,6 +140,15 @@ namespace Semantica
                 Lista_identificadores(type);
             }
         }
+        // Main -> void main() Bloque_Instrucciones 
+        private void Main()
+        {
+            match("void");
+            match("main");
+            match("(");
+            match(")");
+            Bloque_Instrucciones(true);
+        }
         // Bloque_Instrucciones -> {Lista_Instrucciones?}
         private void Bloque_Instrucciones(bool evaluacion)
         {
@@ -206,7 +216,7 @@ namespace Semantica
         // Asignacion -> identificador = cadena | Expresion ;
         private void Asignacion(bool evaluacion)
         {
-            //Requerimiento 2. Si no existe la variable, se levanta la excepción.
+            
             if (!existeVariable(getContenido()))
             {
                 throw new Error("Error de sintáxis: Variable no existe \"" + getContenido() + "\" en la línea " + linea + ".", log);
@@ -261,38 +271,44 @@ namespace Semantica
                 float resultado = stackOperandos.Pop();
                 if (evaluacion)
                 {
-                Console.Write(stackOperandos.Pop());
+                    Console.Write(stackOperandos.Pop());
                 }
             }
             match(")");
             match(";");
         }
         // Scanf -> scanf (string, &Identificador);
-        private void Scanf()
+        private void Scanf(bool evaluacion)
         {
             match("scanf");
             match("(");
             match(Tipos.Cadena);
             match(",");
             match("&");
-            //Requerimiento 2. Si no existe la variable, se levanta la excepción.
             if (!existeVariable(getContenido()))
+            {
+            match(Tipos.Identificador);
+            if (evaluacion)
+            {
+                string value = "" + Console.ReadLine();
+                //Requerimiento 5 
+                float valor = float.Parse(value);
+                modValor(getContenido(), valor);
+            }
+            match(")");
+            match(";");
+            }
+            else 
             {
                 throw new Error("Error de sintáxis: Variable no existe \"" + getContenido() + "\" en la línea " + linea + ".", log);
             }
-            string value = "" + Console.ReadLine();
-            float valor = float.Parse(value);
-            //Requerimiento 5. Modificar el valor de la variable.
-            modValor(getContenido(), valor);
-            match(Tipos.Identificador);
-            match(")");
-            match(";");
         }
         // If -> if (Condicion) Bloque_Instrucciones (else Bloque_Instrucciones)?
         private void If(bool evaluacion)
         {
             match("if");
             match("(");
+            //Requerimiento 4
             bool validarif = Condicion();
             match(")");
             if (getContenido() == "{")
@@ -302,6 +318,7 @@ namespace Semantica
             if (getContenido() == "else")
             {
                 match("else");
+                //if (getConten 4
                 if (getContenido() == "{")
                     Bloque_Instrucciones(validarif);
                 else
@@ -313,10 +330,11 @@ namespace Semantica
         {
             match("while");
             match("(");
-            Condicion();
+            bool validarWhile = Condicion();
+            //Requerimiento 4
             match(")");
             if (getContenido() == "{")
-                Bloque_Instrucciones(evaluacion);
+                Bloque_Instrucciones(validarWhile);
             else
                 Instruccion(evaluacion);
         }
@@ -330,7 +348,8 @@ namespace Semantica
                 Instruccion(evaluacion);
             match("while");
             match("(");
-            Condicion();
+            //Requerimiento 4
+            bool validarDo = Condicion();
             match(")");
             match(";");
         }
@@ -340,7 +359,8 @@ namespace Semantica
             match("for");
             match("(");
             Asignacion(evaluacion);
-            Condicion();
+            //Requerimiento 4
+             bool validarFor = Condicion();
             match(";");
             Incremento(evaluacion);
             match(")");
@@ -353,7 +373,6 @@ namespace Semantica
         private void Incremento(bool evaluacion)
         {
             string variable = getContenido();
-            //Requerimiento 2. Si no existe la variable, se levanta la excepción.
             if (!existeVariable(getContenido()))
             {
                 throw new Error("Error de sintáxis: Variable no existe \"" + getContenido() + "\" en la línea " + linea + ".", log);
@@ -461,15 +480,7 @@ namespace Semantica
                     
             }   
         }
-        // Main -> void main() Bloque_Instrucciones 
-        private void Main(bool evaluacion)
-        {
-            match("void");
-            match("main");
-            match("(");
-            match(")");
-            Bloque_Instrucciones(evaluacion);
-        }
+        
         // Expresion -> Termino MasTermino
         private void Expresion()
         {
@@ -541,7 +552,6 @@ namespace Semantica
             }
             else if (getClasificacion() == Tipos.Identificador)
             {
-                //Requerimiento 2. Si no existe la variable, se levanta la excepción.
                 if (!existeVariable(getContenido()))
                 {
                     throw new Error("Error de sintáxis: Variable no existe \"" + getContenido() + "\" en la línea " + linea + ".", log);
