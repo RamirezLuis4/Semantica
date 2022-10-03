@@ -8,6 +8,7 @@
 //Requerimiento 4: Evaluar nuevamente la condicion del If- else, While, For , do while
 //                 con respecto al parametro que recibe.
 //Requerimiento 5: Levantar una excepcion cuando la captura no sea un numero 
+//Requerimiento 6: Ejecutar el For();
 using System.Collections.Generic;
 
 namespace Semantica
@@ -243,6 +244,7 @@ namespace Semantica
                     modValor(name, resultado);
                 }
             }
+        
             else 
             {
                  throw new Error("Error de semantica: no podemos asignar un: <" +dominante + "> a un <" + getTipo(name) +  "> en linea  " + linea, log);
@@ -360,14 +362,22 @@ namespace Semantica
             match("(");
             Asignacion(evaluacion);
             //Requerimiento 4
-             bool validarFor = Condicion();
-            match(";");
-            Incremento(evaluacion);
-            match(")");
-            if (getContenido() == "{")
-                Bloque_Instrucciones(evaluacion);
-            else
-                Instruccion(evaluacion);
+            //Requerimiento 6: a) Necesito guardar la posicion delo archivo de texto y guardar 
+            bool validarFor = Condicion();
+            // b)Metemos un ciclo while despues de validar el For
+            // while ()
+            // {               
+                    match(";");
+                    Incremento(evaluacion);
+                    match(")");
+                    if (getContenido() == "{")
+                    Bloque_Instrucciones(evaluacion);
+                    else
+                    Instruccion(evaluacion);
+                // c) Regresar a la posicion de lectura del archivo
+                // d) Sacar otro token
+            // }
+                
         }
         // Incremento -> identificador ++ | --
         private void Incremento(bool evaluacion)
@@ -557,11 +567,11 @@ namespace Semantica
                     throw new Error("Error de sintáxis: Variable no existe \"" + getContenido() + "\" en la línea " + linea + ".", log);
                 }
                 log.Write(getContenido() + " ");
-                //Requerimiento 1 : Es con un if como ese
-                /*if(dominante < evaluanumero(float.Parse(getContenido())))
+                //Requerimiento 1 
+                if (dominante < getTipo(getContenido()))
                 {
-                    dominante = evaluanumero(float.Parse(getContenido()));
-                }*/
+                    dominante = getTipo(getContenido());
+                }
                 stackOperandos.Push(getValor(getContenido()));
                 match(Tipos.Identificador);
             }
