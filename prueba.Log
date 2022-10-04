@@ -1,7 +1,5 @@
 Archivo: prueba.cpp
-02/10/2022 07:28:24 p. m.
-
-d = x = 0
+04/10/2022 11:02:44 a. m.
 3 5 + 10 1 1 
 Variables: 
 area Float 0
@@ -9,4 +7,5 @@ radio Float 0
 pi Float 0
 resultado Float 0
 x Char 0
-d Int 0
+a Int 0
+d Int 15
