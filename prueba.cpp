@@ -8,7 +8,7 @@ float x;
 char y;int i ;int j;
 // Este programa calcula el volumen de un cilindro.
 void main(){
-    /*Requerimiento 5.- Levanta una excepcion en el scanf si la captura no es un numero
+    //Requerimiento 5.- Levanta una excepcion en el scanf si la captura no es un numero
     printf("Introduce la altura de la piramide: ");
     scanf("altura", &altura);
     //Requerimiento 6.- Ejecutar el for y for anidado
@@ -33,8 +33,8 @@ void main(){
         if(2 == 2){
             printf("Esto tampoco");     //Requerimiento 4.- evalua nuevamente los if respecto al parametro que reciben
         }
-    }*/
-    a = 200;
+    }
+    a = 256;
     printf("Valor de variable int 'a' antes del casteo: ");
     printf(a);
     y = (char)(a);  //Requerimiento 2 y 3, actualiza el dominante y convierte el valor con una funcion

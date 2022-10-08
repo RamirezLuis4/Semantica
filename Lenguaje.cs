@@ -57,22 +57,6 @@ namespace Semantica
                 }
             }
         }
-        private float convert(float valor, Variable.TipoDato tipo)
-        {
-            if(dominante == Variable.TipoDato.Char && valor > 255)
-            {
-                valor = valor%256;
-                return valor;
-            } else if(dominante == Variable.TipoDato.Int && valor > 65535)
-            {
-                valor = valor%65536;
-                return valor;
-            }
-            else
-            {
-                return valor;
-            }
-        }
         private float getValor(string nameVariable)
         {
             
@@ -332,6 +316,10 @@ namespace Semantica
             match("(");
             //Requerimiento 4
             bool validarif = Condicion();
+            if(!evaluacion)
+            {
+                validarif = false;
+            }
             match(")");
             if (getContenido() == "{")
                 Bloque_Instrucciones(validarif);
@@ -339,11 +327,30 @@ namespace Semantica
                 Instruccion(validarif);
             if (getContenido() == "else")
             {
+                //Requerimiento 4
                 match("else");
                 if (getContenido() == "{")
-                    Bloque_Instrucciones(validarif);
+                {
+                    if(evaluacion)
+                    {
+                        Bloque_Instrucciones(!validarif);
+                    }
+                    else
+                    {
+                        Bloque_Instrucciones(evaluacion);
+                    }
+                }
                 else
-                    Instruccion(validarif);
+                {
+                    if(evaluacion)
+                    {
+                        Instruccion(!validarif);
+                    }
+                    else
+                    {
+                        Instruccion(evaluacion);
+                    }
+                }            
             }
         }
         // While -> while(Condicion) Bloque_Instrucciones | Instruccion
@@ -353,24 +360,33 @@ namespace Semantica
             match("(");
             bool validarWhile = Condicion();
             //Requerimiento 4
+            if(!evaluacion)
+            {
+                validarWhile = false;
+            }
             match(")");
             if (getContenido() == "{")
                 Bloque_Instrucciones(validarWhile);
             else
-                Instruccion(evaluacion);
+                Instruccion(validarWhile);
         }
         // Do -> do Bloque_Instrucciones | Instruccion while(Condicion);
         private void Do(bool evaluacion)
         {
+            bool validarDo = evaluacion;
             match("do");
             if (getContenido() == "{")
-                Bloque_Instrucciones(evaluacion);
+                Bloque_Instrucciones( validarDo);
             else
-                Instruccion(evaluacion);
+                Instruccion(validarDo);
             match("while");
             match("(");
             //Requerimiento 4
-            bool validarDo = Condicion();
+            validarDo = Condicion();
+            if(!evaluacion)
+            {
+                validarDo = false;
+            }
             match(")");
             match(";");
         }
@@ -387,20 +403,39 @@ namespace Semantica
             Asignacion(evaluacion);
             //Requerimiento 4
             //Requerimiento 6: a) Necesito guardar la posicion delo archivo de texto y guardar 
-            bool validarFor = Condicion();
-            // b)Metemos un ciclo while despues de validar el For
-            // while ()
-            // {               
-                    match(";");
-                    Incremento(evaluacion);
-                    match(")");
-                    if (getContenido() == "{")
-                    Bloque_Instrucciones(evaluacion);
-                    else
-                    Instruccion(evaluacion);
-                // c) Regresar a la posicion de lectura del archivo
-                // d) Sacar otro token
-            // }
+            string variable = getContenido();
+            bool validarFor;
+            int pos = posicion;
+            int lin = linea;
+            //                  b)Agregar un ciclo while
+            do
+            {
+                validarFor = Condicion();
+                if(!evaluacion)
+                {
+                    validarFor = false;
+                }
+                match(";");
+                Incremento(validarFor);
+                match(")");
+                if(getContenido() == "{")
+                {
+                    Bloque_Instrucciones(validarFor);  
+                }
+                else
+                {
+                    Instruccion(validarFor);
+                }
+                if(validarFor)
+                {
+                    posicion = pos - variable.Length;
+                    linea = lin;
+                    setPosicion(posicion);
+                    NextToken();
+                }
+                //              c)Regresar a la posicion de lectura del archivo
+                //              d)Sacar otro token
+            }while(validarFor);
                 
         }
         // Incremento -> identificador ++ | --
@@ -571,6 +606,18 @@ namespace Semantica
                 }
             }
         }
+        private float convert(float valor, Variable.TipoDato casteo)
+        {
+            if(casteo == Variable.TipoDato.Char)
+            {
+                return valor % 256;
+            } else if(casteo == Variable.TipoDato.Int)
+            {
+
+                return valor % 65536;
+            }
+                return valor;
+        }
         // Factor -> numero | identificador | (Expresion)
         private void Factor()
         {
@@ -630,14 +677,9 @@ namespace Semantica
                     //Requerimiento 2: Actualizar dominande en base a casteo
                     //Saco un elemnto del satck
                     //Convierto ese valor al equivalente en casteo
-                    dominante = casteo;
                     float valor = stackOperandos.Pop();
-                    if(valor%1 !=0 && dominante != Variable.TipoDato.Float)
-                    {
-                        valor = MathF.Truncate(valor);
-                    }
-                    valor = convert(valor, dominante);
-                    stackOperandos.Push(valor);
+                    stackOperandos.Push(convert(valor, casteo));
+                    dominante = casteo;
                     //Requerimiento 3:
                     //Ejemplo: si el casteo es char y el Pop regresa un 256
                     //el valor equivalente en casteo es 0
