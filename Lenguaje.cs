@@ -10,7 +10,6 @@
 //Requerimiento 5: Levantar una excepcion cuando la captura no sea un numero 
 //Requerimiento 6: Ejecutar el For();
 using System.Collections.Generic;
-
 namespace Semantica
 {
     public class Lenguaje : Sintaxis
@@ -56,6 +55,22 @@ namespace Semantica
                 {
                     v.setValor(newValue);
                 }
+            }
+        }
+        private float convert(float valor, Variable.TipoDato tipo)
+        {
+            if(dominante == Variable.TipoDato.Char && valor > 255)
+            {
+                valor = valor%256;
+                return valor;
+            } else if(dominante == Variable.TipoDato.Int && valor > 65535)
+            {
+                valor = valor%65536;
+                return valor;
+            }
+            else
+            {
+                return valor;
             }
         }
         private float getValor(string nameVariable)
@@ -325,7 +340,6 @@ namespace Semantica
             if (getContenido() == "else")
             {
                 match("else");
-                //if (getConten 4
                 if (getContenido() == "{")
                     Bloque_Instrucciones(validarif);
                 else
@@ -610,8 +624,15 @@ namespace Semantica
                 {
                     //Requerimiento 2: Actualizar dominande en base a casteo
                     //Saco un elemnto del satck
-
                     //Convierto ese valor al equivalente en casteo
+                    dominante = casteo;
+                    float valor = stackOperandos.Pop();
+                    if(valor%1 !=0 && dominante != Variable.TipoDato.Float)
+                    {
+                        valor = MathF.Truncate(valor);
+                    }
+                    valor = convert(valor, dominante);
+                    stackOperandos.Push(valor);
                     //Requerimiento 3:
                     //Ejemplo: si el casteo es char y el Pop regresa un 256
                     //el valor equivalente en casteo es 0
