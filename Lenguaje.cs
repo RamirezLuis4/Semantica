@@ -374,6 +374,11 @@ namespace Semantica
             match(")");
             match(";");
         }
+        public void setPosicion(long posicion)
+        {
+            archivo.DiscardBufferedData();
+            archivo.BaseStream.Seek(posicion, SeekOrigin.Begin);
+        }
         // For -> for (Asignacion Condición ; Incremento) Bloque_Instrucciones | Instruccion
         private void For(bool evaluacion)
         {
