@@ -1,16 +1,20 @@
 //Luis Angel Ramirez Peña
 using System;
 using System.Collections.Generic;
-//Requerimiento 1.- Actualizar el dominante para variables en la expresion
-//                  Ejemplo: float x; char y; y=x 
-//Requerimiento 2.- Actualizar el dominante para el casteo y el valor de la subexpresion 
-//Requerimiento 3.- Programar un metodo de conversion de un valor a un tipo de dato 
-//                  private float convert(float valor, string tipoDato)
-//                  deberan usar el residuo de la division por %255, por %65535
-//Requerimiento 4.- Evaluar nuevamente la condicion del if, while, o do while con respecto
-//                  al parametro que recibe 
-//Requerimiento 5.- Levantar una excepcion en el scanf cuando la captura no sea un numero
-//Requerimiento 6.- Ejecutar el for() 
+// Requerimiento 1.- Actualizacion:
+//                   a)Agregar el residuo de la division por factor 
+//                   b)Agregar en instruccion los inclementos de termino y de factor 
+//                     (a++, a--, a+=1, a-=1, a*=1, a=/=1, a%=1)
+//                      en donde el 1 puede ser una expresion
+//                   c) Programar el destructor para  ejecutar el metodo cerrararchivo()
+//                      #libreria especial? contenedor?
+//                      #en la clase lexico
+// Requerimiento 2.- Actualizacion:                 
+//                   c)Marcar errores semanticos cuando los incrementos de termino o incrementos de factor
+//                     superen el limite de la variable
+//                   d)Considerar el inciso b) y c) para el for
+//                   e)Funcione el Do y el while
+
 namespace Semantica
 {
     public class Lenguaje : Sintaxis
@@ -28,6 +32,11 @@ namespace Semantica
 
         }
 
+        ~Lenguaje()
+        {
+            Console.WriteLine("Destructor");
+            cerrar();
+        }
         private void addVariable(String nombre,Variable.TipoDato tipo)
         {
             variables.Add(new Variable(nombre, tipo));
@@ -272,7 +281,13 @@ namespace Semantica
             log.WriteLine();
             log.Write(getContenido() + " = ");
             string nombre = getContenido();
-            match(Tipos.Identificador); 
+            match(Tipos.Identificador);
+            if(getClasificacion() == Tipos.IncrementoTermino || getClasificacion() == Tipos.IncrementoFactor)
+            {
+                //Requerimiento 1.b(Unidad 3)
+            }
+            else
+            { 
             match(Tipos.Asignacion);
             dominante = Variable.TipoDato.Char;
             Expresion();
@@ -294,6 +309,7 @@ namespace Semantica
             else
             {
                 throw new Error("Error de semantica, no podemos asignar un <" + dominante + "> a un <" + getTipo(nombre) + "> en la linea " + linea, log);
+            }
             }
         }
 
@@ -356,14 +372,13 @@ namespace Semantica
             match("for");
             match("(");
             Asignacion(evaluacion);
-            //Requerimiento 4:
-            //Requerimiento 6:
-            //                a)Necesito guardar la posicion del archivo de texto
+            
             string variable = getContenido();
+            float valor = 0;
             bool validarFor;
             int pos = posicion;
             int lin = linea;
-            //                  b)Agregar un ciclo while
+            
             do
             {
                 validarFor = Condicion();
@@ -372,7 +387,7 @@ namespace Semantica
                     validarFor = false;
                 }
                 match(";");
-                Incremento(validarFor);
+                valor = Incremento();
                 match(")");
                 if(getContenido() == "{")
                 {
@@ -388,12 +403,32 @@ namespace Semantica
                     linea = lin;
                     setPosicion(posicion);
                     NextToken();
+                    modVariable(getContenido(),valor);
                 }
                 //              c)Regresar a la posicion de lectura del archivo
                 //              d)Sacar otro token
             }while(validarFor);
         }
-
+        //Sobreescribe el metodo de incremento
+        private float Incremento()
+        {
+            string variable = getContenido();
+            if(!existeVariable(getContenido()))
+                throw new Error("Error de sintaxis, variable inexistente <" +getContenido()+"> en linea: "+linea, log);
+            match(Tipos.Identificador);
+            if(getContenido() == "++")
+            {
+                match("++");
+                return getValor(variable) + 1;
+            }
+            else
+            {
+                match("--");
+                return getValor(variable) - 1;
+            }
+            
+        }
+        
         //Incremento -> Identificador ++ | --
         private void Incremento(bool evaluacion)
         {
