@@ -143,6 +143,7 @@ namespace Semantica
             Main();
             displayVariables();
             asm.WriteLine("RET");
+            asm.WriteLine("DEFINE_SCAN_NUM");
             //asm.WriteLine("END");
         }
 
@@ -703,7 +704,7 @@ namespace Semantica
                     //escribe contenido
                     Console.Write(getContenido());
                 }
-
+                asm.WriteLine("PRINTN \"" + getContenido()+"\"");
                 match(Tipos.Cadena);
             }
             else
@@ -714,6 +715,7 @@ namespace Semantica
                 if (evaluacion)
                 {
                     Console.Write(resultado);
+                    //Codigo ensamblador paea imprimir una variable
                 }
             }
 
@@ -756,6 +758,8 @@ namespace Semantica
                     throw new Error("Error: No se puede asignar un valor de tipo cadena a una variable de tipo numerico " + getContenido() + " en la linea: " + linea, log);
                 }
 
+                asm.WriteLine("CALL SCAN_NUM");
+                asm.WriteLine("MOV " + getContenido() + " , CX");
                 //modVariable(getContenido(), float.Parse(val));
 
             }
