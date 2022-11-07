@@ -18,16 +18,17 @@ using System.Collections.Generic;
 //Requerimiento 3:
 //  a) Considerar las variables y los casteos en las expresiones matematicas en ensamblador
 //  B) Considerar el residuo de la division en assembler
-//  c) Programar el printf y scanf en assembler
-// Requerimiento 4:
-//  a) Programar el else en assembler
-//  b) Programar el for en assembler
-// Requerimiento 5:
-//  a) Programar el while en assembler
-//  b) Programar el do while en assembler
+//  C) Programar el printf y el scanf en ensamblador
+//Requerimiento 4:
+//  A)Programar el else en ensamblador
+//  B)Programar el for en ensamblador 
+//Requerimiento 5:
+//  a)Programar el while en ensamblador
+//  b)Programar el do while en ensamblador
+
 namespace Semantica
 {
-    public class Lenguaje : Sintaxis
+    public class Lenguaje : Sintaxis, IDisposable
     {
 
         List<Variable> variables = new List<Variable>();
@@ -36,20 +37,21 @@ namespace Semantica
         Variable.TipoDato dominante;
         int cIf;
         int cFor;
+        
 
         public Lenguaje()
         {
-            cIf = cFor = 0;
+            cIf = cFor =0;
         }
         public Lenguaje(string nombre) : base(nombre)
         {
-            cIf = cFor = 0;
+            cIf =cFor= 0;
         }
 
-        ~Lenguaje()
+        public void Dispose()
         {
+            cerrar(); 
             Console.WriteLine("Destructor");
-            cerrar();
         }
 
         private void addVariable(String nombre, Variable.TipoDato tipo)
@@ -143,7 +145,6 @@ namespace Semantica
             Main();
             displayVariables();
             asm.WriteLine("RET");
-            asm.WriteLine("DEFINE_SCAN_NUM");
             //asm.WriteLine("END");
         }
 
@@ -322,8 +323,8 @@ namespace Semantica
 
             if (getClasificacion() == Tipos.IncrementoTermino || getClasificacion() == Tipos.IncrementoFactor)
             {
-                //Requerimiento 1.b
-                //Req 1.c
+                modVariable(nombre, Incremento(evaluacion, nombre));
+                match(";");
             }
             else
             {
@@ -427,18 +428,20 @@ namespace Semantica
         //For -> for(Asignacion Condicion; Incremento) BloqueInstruccones | Intruccion 
         private void For(bool evaluacion)
         {
-            string etiquetaInicioFor = "inicioFor" + cFor;
-            string etiquetaFinFor = "finFor" + cFor++;
+            string etiquetaInicioFor = "InicioFor" + cFor;
+            string etiquetaFinFor = "FinFor" + cFor++;
             asm.WriteLine(etiquetaInicioFor + ":");
             match("for");
             match("(");
             Asignacion(evaluacion);
+            //string nombre = getContenido();
             //Requerimiento 4.- Si la condicion no es booleana levanta la excepcion
             float valor = 0;
             bool validarFor;
             int pos = posicion;
             int lineaGuardada = linea;
             int tam = getContenido().Length;
+            string nombreVar = getContenido();
             //b) Agregar un ciclo while despues de validar el for, que se ejecute mientras la condicion sea verdadera
             do
             {
@@ -448,11 +451,8 @@ namespace Semantica
                     validarFor = false;
                 }
                 match(";");
-
-                //requerimiento 1.d
-                valor = Incremento(evaluacion);
-
-
+                match(Tipos.Identificador);
+                valor = Incremento(evaluacion, nombreVar);
                 match(")");
                 if (getContenido() == "{")
                 {
@@ -472,9 +472,9 @@ namespace Semantica
                     modVariable(getContenido(), valor);
                 }
             } while (validarFor);
-            asm.WriteLine(etiquetaFinFor + ":");
             //c)Regresar a la posicion de lectura del archivo de texto
             //d) sacar otro tokencon el metodo nextToken(
+            asm.WriteLine(etiquetaFinFor + ":");
         }
         private void setPosicion(int pos)
         {
@@ -482,44 +482,15 @@ namespace Semantica
             archivo.BaseStream.Seek(pos, SeekOrigin.Begin);
         }
 
-        //Incremento -> Identificador ++ | --
-        /* private void Incremento(bool evaluacion)
+        private float Incremento(bool evaluacion, string variable)
         {
-            string variable = getContenido();
+            float valor = getValor(variable); 
             //Requerimiento 2.- Si no existe la variable levanta la excepcion
             if (existeVariable(variable) == false)
             {
                 throw new Error("Error: Variable inexistente " + getContenido() + " en la linea: " + linea, log);
             }
-            match(Tipos.Identificador);
-            if (getContenido() == "++")
-            {
-                match("++");
-                //si la variable evaluacion es verdadera entonces se modifica el valor de la variable
-                if (evaluacion)
-                {
-                    modVariable(variable, getValor(variable) + 1);
-                }
-            }
-            else
-            {
-                match("--");
-                //si la variable evaluacion es verdadera entonces se modifica el valor de la variable
-                if (evaluacion)
-                {
-                    modVariable(variable, getValor(variable) - 1);
-                }
-            }
-        } */
-        private float Incremento(bool evaluacion)
-        {
-            string variable = getContenido();
-            //Requerimiento 2.- Si no existe la variable levanta la excepcion
-            if (existeVariable(variable) == false)
-            {
-                throw new Error("Error: Variable inexistente " + getContenido() + " en la linea: " + linea, log);
-            }
-            match(Tipos.Identificador);
+            //Requerimiento 1 b
             if (getContenido() == "++")
             {
                 match("++");
@@ -533,7 +504,7 @@ namespace Semantica
                 }
 
             }
-            else
+            else if(getContenido() == "--")
             {
                 match("--");
                 if (evaluacion)
@@ -546,6 +517,57 @@ namespace Semantica
                 }
 
             }
+            else if (getContenido() == "*=")
+            {
+                match("*=");
+                Expresion();
+                float expresion = stack.Pop(); 
+                if(evaluacion) 
+                {
+                    valor *= expresion;
+                }
+            }
+            else if (getContenido() == "/=")
+            {
+                match("/=");
+                Expresion();
+                float expresion = stack.Pop(); 
+                if(evaluacion) 
+                {
+                    valor /= expresion;
+                }
+            }
+            else if (getContenido() == "+=")
+            {
+                match("+=");
+                Expresion();
+                float expresion = stack.Pop(); 
+                if(evaluacion) 
+                {
+                    valor += expresion;
+                }
+            }
+            else if (getContenido() == "-=")
+            {
+                match("-=");
+                Expresion();
+                float expresion = stack.Pop(); 
+                if(evaluacion) 
+                {
+                    valor -= expresion;
+                }
+            }
+            else if(getContenido() == "%=")
+            {
+                match("%=");
+                Expresion();
+                float expresion = stack.Pop(); 
+                if(evaluacion) 
+                {
+                    valor %= expresion;
+                }
+            }
+            return valor; 
         }
 
         //Switch -> switch (Expresion) {Lista de casos} | (default: )
@@ -704,7 +726,7 @@ namespace Semantica
                     //escribe contenido
                     Console.Write(getContenido());
                 }
-                asm.WriteLine("PRINTN \"" + getContenido()+"\"");
+
                 match(Tipos.Cadena);
             }
             else
@@ -715,7 +737,6 @@ namespace Semantica
                 if (evaluacion)
                 {
                     Console.Write(resultado);
-                    //Codigo ensamblador paea imprimir una variable
                 }
             }
 
@@ -758,8 +779,6 @@ namespace Semantica
                     throw new Error("Error: No se puede asignar un valor de tipo cadena a una variable de tipo numerico " + getContenido() + " en la linea: " + linea, log);
                 }
 
-                asm.WriteLine("CALL SCAN_NUM");
-                asm.WriteLine("MOV " + getContenido() + " , CX");
                 //modVariable(getContenido(), float.Parse(val));
 
             }
@@ -822,10 +841,8 @@ namespace Semantica
                 asm.WriteLine("POP BX");
                 float n2 = stack.Pop();
                 asm.WriteLine("POP AX");
+              
                 
-                
-
-                //Requerimiento 1.a
                 switch (operador)
                 {
                     case "*":
@@ -840,6 +857,13 @@ namespace Semantica
                         asm.WriteLine("DIV BX");
                         //Se guarda el resultado de la division en AL y lo metemos al stack
                         asm.WriteLine("PUSH AX");
+                        break;
+                    //Requerimiento 1.a
+                    case "%":
+                        stack.Push(n2 % n1);
+                        asm.WriteLine("DIV BX");
+                        //Se guarda el residuo de la division en AH y lo metemos al stack
+                        asm.WriteLine("PUSH DX");
                         break;
                 }
             }

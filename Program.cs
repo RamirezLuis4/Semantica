@@ -10,26 +10,16 @@ namespace Semantica
         {
             try
             {
-                
-                Lenguaje a = new Lenguaje();
-
-                a.Programa();
-
-
-                
-                //while(!a.FinArchivo())
-                //{
-                  //  a.NextToken();
-                //}
-                a.cerrar();
-               
+                using(Lenguaje a = new Lenguaje())
+                {
+                    a.Programa();
+                    //a.cerrar();
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Console.WriteLine("Error");
+                Console.WriteLine(e.Message);
             }
-
-
         }
     }
 }
