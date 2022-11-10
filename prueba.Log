@@ -1,17 +1,15 @@
 Archivo: prueba.cpp
-09/11/2022 06:37:00 p. m.
-
-= = 257 = 1
+10/11/2022 09:17:31 a. m.
 
 variables: 
 area Float 0
 radio Float 0
 pi Float 0
 resultado Float 0
-a Int 0
+a Int 10
 d Int 0
 altura Int 0
 x Float 0
-y Char 1
+y Char 0
 i Int 0
 j Int 0

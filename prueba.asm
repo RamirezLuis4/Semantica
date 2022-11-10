@@ -1,5 +1,5 @@
 ;Archivo: prueba.cpp
-;Fecha: 09/11/2022 06:37:00 p. m.
+;Fecha: 10/11/2022 09:17:31 a. m.
 #make_COM#
 include emu8086.inc
 ORG 100h
@@ -15,9 +15,10 @@ ORG 100h
 	 y DW 0
 	 i DW 0
 	 j DW 0
-MOV AX, 257
-PUSH AX
-POP AX
-MOV AH, 0
-MOV y, AX
+PRINT ' Ingresa un numero: '
+CALL SCAN_NUM
+MOV a, CX
 RET
+define_print_num
+define_print_num_uns
+define_scan_num

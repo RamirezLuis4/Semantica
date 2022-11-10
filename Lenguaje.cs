@@ -145,6 +145,9 @@ namespace Semantica
             Main();
             displayVariables();
             asm.WriteLine("RET");
+            asm.WriteLine("define_print_num"); //Req 3.c son las tres librerias
+            asm.WriteLine("define_print_num_uns");
+            asm.WriteLine("define_scan_num");
             //asm.WriteLine("END");
         }
 
@@ -602,6 +605,7 @@ namespace Semantica
                     valor %= expresion;
                 }
             }
+            //Requerimiento 2.c
             if(getTipo(variable) < dominante)
             {
                 throw new Error("Error: No se puede asignar un valor de tipo " + getTipo(variable) + " a una variable de tipo " + dominante + " en la linea: " + linea,log);
@@ -701,9 +705,10 @@ namespace Semantica
         private void If(bool evaluacion)
         {
             string etiquetaIf = "if" + ++cIf;
+            string etiquetaElse = "else" + cIf; //4.a
             match("if");
             match("(");
-            //Requerimiento 4
+            //Requerimiento 4.a
             bool validarIf = Condicion(etiquetaIf);
             if (!evaluacion)
             {
@@ -719,12 +724,16 @@ namespace Semantica
             {
                 Instruccion(validarIf);
             }
-
+            if(getContenido() == "else") //4.a
+            {
+                asm.WriteLine("JMP " + etiquetaElse);
+            }
+            asm.WriteLine(etiquetaIf + ":"); //4.a
             if (getContenido() == "else")
             {
                 match("else");
-                //Requerimiento 4
-                if (getContenido() == "{")
+                //Requerimiento 4.a
+                 if (getContenido() == "{")
                 {
                     if (evaluacion)
                     {
@@ -734,7 +743,6 @@ namespace Semantica
                     {
                         BloqueInstrucciones(false);
                     }
-
                 }
                 else
                 {
@@ -747,9 +755,8 @@ namespace Semantica
                         Instruccion(false);
                     }
                 }
-
             }
-            asm.WriteLine(etiquetaIf + ":");
+            asm.WriteLine(etiquetaElse + ":"); //4.a
         }
 
         //Printf -> printf(cadena|expresion);
@@ -771,7 +778,7 @@ namespace Semantica
                     //escribe contenido
                     Console.Write(getContenido());
                 }
-
+                asm.WriteLine("PRINT \' " + getContenido() + '\''); //3.C
                 match(Tipos.Cadena);
             }
             else
@@ -807,13 +814,10 @@ namespace Semantica
                     throw new Error("Error: Variable inexistente " + getContenido() + " en la linea: " + linea, log);
                 }
             }
-
             if (evaluacion)
             {
-
                 string val = "" + Console.ReadLine();
-                //Requerimiento 5.- Si el valor no es un numero, levanta la excepcion
-                //revisamos si capturamos un numero en la cadena de caracteres
+                
                 if (float.TryParse(val, out float numero))
                 {
                     modVariable(getContenido(), numero);
@@ -823,11 +827,9 @@ namespace Semantica
                     //modVariable(getContenido(), 0);
                     throw new Error("Error: No se puede asignar un valor de tipo cadena a una variable de tipo numerico " + getContenido() + " en la linea: " + linea, log);
                 }
-
-                //modVariable(getContenido(), float.Parse(val));
-
+            asm.WriteLine("CALL SCAN_NUM");//3.C
+            asm.WriteLine("MOV " + getContenido() + ", CX");
             }
-
             match(Tipos.Identificador);
             match(")");
             match(";");
@@ -979,14 +981,6 @@ namespace Semantica
                 match(")");
                 if (huboCasteo)
                 {
-                    //req 2 unidad 2
-                    //saco un elemento del stack
-                    //convierto ese valor al equivalente en casteo
-
-                    //req 3 unidad 2
-                    //ejemplo: si el casteo es char y el pop regresa un 256, 
-                    //          el valor equivalente en casteo es un 0
-                    //llamamos al metodo convertir
                     float valor = stack.Pop();
                     stack.Push(convertir(valor, casteo));
                     dominante = casteo;

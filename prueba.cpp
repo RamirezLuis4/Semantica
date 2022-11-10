@@ -38,8 +38,23 @@ i = 1;
 while(i < 20){
 printf(i);
  i*=2;
-} */
+} 
 y = (char) (257);
-
+if(1 == 1){
+	printf("Esto se imprime if\n");
+}
+else
+{
+	printf("Esto no se imprime\n");
+}
+if(1 == 2)
+{
+	printf("Esto no se imprime\n");
+}else
+{
+	printf("Esto se imprime else\n");
+}*/
+printf("Ingresa un numero: ");
+scanf("%d", &a);
 
 }
