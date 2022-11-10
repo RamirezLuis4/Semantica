@@ -360,6 +360,10 @@ namespace Semantica
                 {
                     throw new Error("Error de semantica: no podemos asignar un valor de tipo <" + dominante + "> a una variable de tipo <" + getTipo(nombre) + "> en la linea: " + linea, log);
                 }
+                //Requerimienti 3.a
+                if(getTipo(nombre) == Variable.TipoDato.Char){
+                    asm.WriteLine("MOV AH, 0");
+                }
                 asm.WriteLine("MOV " + nombre + ", AX");
             }
         }
@@ -942,6 +946,8 @@ namespace Semantica
                 stack.Push(getValor(getContenido()));
                 // Requerimiento 3.a 
                 //pasamos al siguiente token
+                asm.WriteLine("MOV AX, " + getContenido());
+                asm.WriteLine("PUSH AX");
                 match(Tipos.Identificador);
             }
             else
@@ -982,7 +988,6 @@ namespace Semantica
                     //          el valor equivalente en casteo es un 0
                     //llamamos al metodo convertir
                     float valor = stack.Pop();
-                    asm.WriteLine("POP AX");
                     stack.Push(convertir(valor, casteo));
                     dominante = casteo;
                 }
